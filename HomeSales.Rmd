@@ -1,0 +1,202 @@
+---
+title: "Home_sales"
+author: "Karani wachira"
+date: "2022-07-21"
+output: html_document
+---
+
+```{r}
+#This data contains information on homes sold in the Seattle, Washington area between 2015 and 2016.
+#create training and test datasets from the home_sales data
+
+library(tidyverse)
+library(knitr)
+library(tidymodels)
+```
+
+
+```{r}
+#home_sales <- read_rds("data/home_sales.rds")
+#telecom_df <- read_rds("data/telecom_df.rds")
+#loans_df <- read_rds("data/loan_df.rds")
+
+library(readr)
+home_sales <- read_csv("~/Downloads/RDekut files/kc_house_data.csv")
+View(home_sales)
+
+```
+
+
+```{r}
+#Create an rsample object, home_split, that contains the instructions for randomly splitting the home_sales data into a training and test dataset
+
+#Allocate 70% of the data into training and stratify the results by price
+
+home_split <- initial_split(home_sales, 
+                            prop = 0.7, 
+                            strata = price)
+
+```
+
+```{r}
+#create a traing data set from home_split called home_training
+home_training <- home_split %>% 
+  training()
+
+```
+
+```{r}
+#Create the home_test tibble by passing home_split into the appropriate function i.e testing () for generating test datasets
+home_test <- home_split %>% 
+  testing()
+
+```
+
+
+```{r}
+#Check the number of rows in the training and test datasets by passing them into the nrow() function
+nrow(home_test)
+
+```
+
+```{r}
+#EXERCISE FOR YOU: check the number of rows in the training data sets/tibbles
+
+```
+
+```{r}
+#number of rows from the initial dataset
+#Just for comparison
+#it is appropriate to allocate more rows into the test set. This will provide more data for the model evaluation step.
+
+nrow(home_sales)
+```
+
+
+```{r}
+#What is stratified sampling in R?
+#One commonly used sampling method is stratified random sampling, in which #a population is split into groups and a certain number of members from #each group are randomly selected to be included in the sample
+
+```
+
+
+```{r}
+#EXERCISE ON DATA WRANGLING 
+# calculate summary statistics for the price variable in the training and test datasets. The home_training and home_test tibbles
+
+# Distribution of price in training data
+home_training %>% 
+  summarize(min_price = min(price),
+            max_price = max(price),
+            mean_price = mean(price),
+            sd_price = sd(price))
+  
+```
+
+
+```{r}
+# Distribution of price in test data
+home_test %>% 
+  summarise(min_price = min(price),
+            max_price = max(price),
+            mean_price = mean(price),
+            sd_price = sd(price))
+
+
+```
+
+```{r}
+#In this exercise, you will define a parsnip linear regression object and train your model to predict price using yr_built and sqft_living as predictor variables from the home_sales data.
+
+# Initialize a linear regression object, linear_model
+linear_model <- linear_reg() %>% 
+  set_engine('lm') %>%    # Set the model engine
+  set_mode('regression')  # Set the model mode
+
+
+```
+
+
+```{r}
+#Train your model to predict selling_price using yr_built and sqft_living as predictor variables from the home_training dataset.
+
+lm_fit <- linear_model %>% 
+  fit(price ~ yr_built + sqft_living,
+      data = home_training)
+
+#EXERCISE
+# Print lm_fit to view model information
+
+
+#Excellent work! 
+#You have defined your model with linear_reg() and trained it to predict price using yr_built and sqft_living. 
+
+#Printing a parsnip model fit object displays useful model information, such as the training time, model formula used during training, and the estimated model parameters
+
+  
+```
+
+
+```{r}
+#Now lets explore your models estimated parameters
+tidy(lm_fit)
+
+
+#WHAT DO WE OBSERVE FROM THE TIBBLE??
+#Since sqft_living has a positive estimated parameter, the price of homes increases with the square footage.
+
+#Conversely, since yr_built(which represents the home_age) has a negative estimated parameter, older homes tend to have lower prices
+
+```
+
+```{r}
+#Now let us predict home prices
+#Before you can evaluate model performance, you must add your predictions to the test dataset
+
+#EXERCISE
+#use your trained model, lm_fit, to predict price in the home_test dataset
+
+#HINT: Create a tibble, home_predictions (OR ANY NAME), that contains the predicted selling prices of homes in the test dataset.
+
+home_predictions <- predict(lm_fit,
+                            new_data = home_test)
+
+home_predictions
+```
+
+
+
+```{r}
+#Create a tibble with the price, yr_built, and sqft_living columns from the test dataset and the predicted home prices
+
+home_test_results <- home_test %>% 
+  select(price, yr_built, sqft_living) %>% 
+  bind_cols(home_predictions)
+
+#view results
+home_test_results
+
+
+                        #Congratualtions!
+
+# You have trained a linear regression model and used it to predict the prices of homes in the test dataset! The model only used two predictor variables, but the predicted values in the .pred column seem reasonable!
+
+```
+
+```{r}
+
+#NEXT WEEK
+                  #Evaluating model performance
+
+
+
+
+```
+
+
+
+
+
+
+
+
